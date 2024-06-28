@@ -2,8 +2,9 @@
 #include <limits>
 #include <string>
 #include <fstream>
-//#include <conio.h>
+#include <cstdlib> // Для system()
 #include <ctime>
+//#include <conio.h>
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
 using namespace std;
@@ -21,6 +22,8 @@ USER U;//Пользователь
 * 1 бит - запись в файл
 * 2 бит - создание файлов
 * 3 бит удаление файлов
+* 4 бит
+* 5 бит
 */
 void Book(string text);//Функция журналирования
 bool Authentication();//Функция аутентификации
@@ -28,6 +31,8 @@ void ReadFiles();//Функция чтения
 void WriteFiles();//Функция записи
 void CreatFiles();//Функция создания файла
 void DeleteFiles();//Функция удаления файла
+void CopyFiles(); // Функция копирования файла
+void MoveFiles(); // Функция перемещения файла
 void UserActions();//Функция выбора действия пользователем
 void CreatUser();//Функция создания пользователей
 void DeleteUser();//Функция удаления пользователя
@@ -157,24 +162,93 @@ void DeleteFiles()
         cout << "Ошибка: У пользователя <" << U.Login << "> отсутствуют права на удаление файла" << endl;
     }
 }
-void UserActions()
-{
+void CopyFiles() {
+    // Проверка права на копирование (предположим, что для этого нужен тот же бит, что и для создания)
+    if (!(U.Rights & (1 << 2))) { 
+        cout << "Ошибка: У пользователя <" << U.Login << "> отстутствуют права на копирование файлов" << endl;
+        return; 
+    }
+
+    string source, destination;
+    cout << "Введите название копируемого файла: ";
+    cin >> source;
+    cout << "Введите название файла назначения: ";
+    cin >> destination;
+
+    string command = "cp \"" + source + "\" \"" + destination + "\"";
+    int result = system(command.c_str());
+
+    if (result == 0) {
+        cout << "Файл " << source << " успешно скопирован в " << destination << endl;
+        Book("Файл " + source + " скопирован в " + destination);
+    } else {
+        cout << "Ошибка при копировании файла!" << endl;
+    }
+}
+
+void MoveFiles() {
+    // Проверка права на перемещение (предположим, что для этого нужен тот же бит, что и для создания)
+    if (!(U.Rights & (1 << 2))) { 
+        cout << "Ошибка: У пользователя <" << U.Login << "> отстутствуют права на перемещение файлов" << endl;
+        return; 
+    }
+
+    string source, destination;
+    cout << "Введите название перемещаемого файла: ";
+    cin >> source;
+    cout << "Введите название файла назначения: ";
+    cin >> destination;
+
+    string command = "mv \"" + source + "\" \"" + destination + "\"";
+    int result = system(command.c_str());
+
+    if (result == 0) {
+        cout << "Файл " << source << " успешно перемещен в " << destination << endl;
+        Book("Файл " + source + " перемещен в " + destination);
+    } else {
+        cout << "Ошибка при перемещении файла!" << endl;
+    }
+}
+void UserActions() {
+    char action;
     while (true) {
-        cout << "Выберите действие (нажмите на нужную цифру, соответствующую действию): " << endl;
-        cout << "\t\t1.Чтение файлов\n\t\t2.Запись в файл\n\t\t3.Создание файла\n\t\t4.Удаление файла\n\t\t5.Выход\n";
-        char choice = cin.get();
-        if (choice == '1')
-            ReadFiles();
-        else if (choice == '2')
-            WriteFiles();
-        else if (choice == '3')
-            CreatFiles();
-        else if (choice == '4')
-            DeleteFiles();
-        else if (choice == '5')
+        cout << "Меню:\n"; 
+        cout << "1 - Читать файл\n";
+        cout << "2 - Записать в файл\n";
+        cout << "3 - Создать файл\n";
+        cout << "4 - Удалить файл\n";
+        cout << "5 - Копировать файл\n";
+        cout << "6 - Переместить файл\n";
+        cout << "7 - Выход\n";
+        cout << "Выберите действие: ";  // Добавлен запрос на выбор действия
+
+        action = cin.get();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        switch (action) {
+        case '1':
+            ReadFiles(); 
             break;
-        else
-            cout << "Ошибка: Выбрано несуществующее действие!" << endl;
+        case '2':
+            WriteFiles();
+            break;
+        case '3':
+            CreatFiles(); 
+            break;
+        case '4':
+            DeleteFiles(); 
+            break;
+        case '5':
+            CopyFiles(); 
+            break;
+        case '6':
+            MoveFiles();
+            break;
+        case '7':
+            return; 
+        default:
+            cout << "Ошибка: выбрано неверное действие!\n" << endl;
+        }
     }
 }
 void CreatUser()
